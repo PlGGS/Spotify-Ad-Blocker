@@ -82,9 +82,19 @@ namespace EZBlocker
             }
             else
             {
-                if (!File.Exists(Environment.GetEnvironmentVariable("APPDATA") + @"\Spotify\Spotify.exe") &&
-                    !File.Exists(@"C:\Program Files\Spotify\Spotify.exe") &&
-                    !File.Exists(@"C:\Program Files (x86)\Spotify\Spotify.exe"))
+                if (File.Exists(Environment.GetEnvironmentVariable("APPDATA") + @"\Spotify\Spotify.exe"))
+                {
+                    Properties.Settings.Default.SpotifyPath = Environment.GetEnvironmentVariable("APPDATA") + @"\Spotify\Spotify.exe";
+                }
+                else if (File.Exists(@"C:\Program Files\Spotify\Spotify.exe"))
+                {
+                    Properties.Settings.Default.SpotifyPath = @"C:\Program Files\Spotify\Spotify.exe";
+                }
+                else if (File.Exists(@"C:\Program Files (x86)\Spotify\Spotify.exe"))
+                {
+                    Properties.Settings.Default.SpotifyPath = @"C:\Program Files (x86)\Spotify\Spotify.exe";
+                }
+                else 
                 {
                     MessageBox.Show("Could not find Spotify.exe. Please select 'Use custom Spotify path', and enter the path into the textbox below it to use EZBlocker with an executable in an unexpected location.", "EZBlocker");
                     string message = Properties.strings.StatusNotFound;
@@ -95,6 +105,8 @@ namespace EZBlocker
                         artistTooltip.SetToolTip(StatusLabel, "");
                     };
                 }
+
+                Properties.Settings.Default.Save();
             }
         }
 
@@ -506,18 +518,15 @@ namespace EZBlocker
 
         private void cbxUseCustomPath_MouseUp(object sender, MouseEventArgs e)
         {
+            Properties.Settings.Default.UsingCustomPath = cbxUseCustomPath.Checked;
+            Properties.Settings.Default.Save();
+
             if (cbxUseCustomPath.Checked)
             {
-                Properties.Settings.Default.UsingCustomPath = true;
-                Properties.Settings.Default.Save();
-
                 LocateSpotifyExecutable(false);
             }
             else
             {
-                Properties.Settings.Default.UsingCustomPath = false;
-                Properties.Settings.Default.Save();
-
                 Process.Start(Application.ExecutablePath);
                 Environment.Exit(0);
             }
