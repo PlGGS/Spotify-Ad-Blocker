@@ -20,7 +20,6 @@ namespace EZBlocker
         private string lastMessage = "";
         private ToolTip artistTooltip = new ToolTip();
 
-        private readonly string spotifyPath = Environment.GetEnvironmentVariable("APPDATA") + @"\Spotify\spotify.exe";
         private readonly string volumeMixerPath = Environment.GetEnvironmentVariable("WINDIR") + @"\System32\SndVol.exe";
         private readonly string hostsPath = Environment.GetEnvironmentVariable("WINDIR") + @"\System32\drivers\etc\hosts";
 
@@ -39,6 +38,64 @@ namespace EZBlocker
         {
             Thread.CurrentThread.CurrentUICulture = Thread.CurrentThread.CurrentCulture;
             InitializeComponent();
+        }
+
+        private void LocateSpotifyExecutable(bool onLaunch) //TODO MAKE A USINGCUSTOMPATH SETTING
+        {
+            if (Properties.Settings.Default.UsingCustomPath)
+            {
+                if (txtUseCustomPath.Text != "")
+                {
+                    if (txtUseCustomPath.Text.Contains(".exe"))
+                    {
+                        if (File.Exists($"{txtUseCustomPath.Text}"))
+                        {
+                            Properties.Settings.Default.SpotifyPath = txtUseCustomPath.Text;
+                            Properties.Settings.Default.Save();
+                            if (!onLaunch)
+                            {
+                                Process.Start(Application.ExecutablePath);
+                                Environment.Exit(0);
+                            }
+                        }
+                        else
+                        {
+                            MessageBox.Show($"{txtUseCustomPath.Text}");
+                            MessageBox.Show("Please make sure your custom executable is actually inside your given directory.", "EZBlocker");
+                            cbxUseCustomPath.Checked = false;
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show("Please make sure your custom path includes the executable.", "EZBlocker");
+                        cbxUseCustomPath.Checked = false;
+                    }
+                }
+                else
+                {
+                    if (!onLaunch)
+                    {
+                        MessageBox.Show("Please make sure to give a custom path.", "EZBlocker");
+                        cbxUseCustomPath.Checked = false;
+                    }
+                }
+            }
+            else
+            {
+                if (!File.Exists(Environment.GetEnvironmentVariable("APPDATA") + @"\Spotify\Spotify.exe") &&
+                    !File.Exists(@"C:\Program Files\Spotify\Spotify.exe") &&
+                    !File.Exists(@"C:\Program Files (x86)\Spotify\Spotify.exe"))
+                {
+                    MessageBox.Show("Could not find Spotify.exe. Please select 'Use custom Spotify path', and enter the path into the textbox below it to use EZBlocker with an executable in an unexpected location.", "EZBlocker");
+                    string message = Properties.strings.StatusNotFound;
+                    if (lastMessage != message)
+                    {
+                        lastMessage = message;
+                        StatusLabel.Text = message;
+                        artistTooltip.SetToolTip(StatusLabel, "");
+                    };
+                }
+            }
         }
 
         /**
@@ -102,8 +159,8 @@ namespace EZBlocker
                 else
                 {
                     if (MainTimer.Interval != 1000) MainTimer.Interval = 1000;
-                    string message = Properties.strings.StatusNotFound;
-                    if (lastMessage != message)
+                    string message = Properties.strings.StatusNotRunning;
+                    if (lastMessage != Properties.strings.StatusNotFound && lastMessage != message)
                     {
                         lastMessage = message;
                         StatusLabel.Text = message;
@@ -192,12 +249,23 @@ namespace EZBlocker
                 Properties.Settings.Default.Save();
             }
 
+            if (Properties.Settings.Default.UsingCustomPath)
+            {
+                txtUseCustomPath.Text = Properties.Settings.Default.SpotifyPath;
+                Properties.Settings.Default.Save();
+                cbxUseCustomPath.Checked = true;
+            }
+            else
+            {
+                LocateSpotifyExecutable(true);
+            }
+
             // Start Spotify and give EZBlocker higher priority
             try
             {
-                if (Properties.Settings.Default.StartSpotify && File.Exists(spotifyPath) && Process.GetProcessesByName("spotify").Length < 1)
+                if (Properties.Settings.Default.StartSpotify && File.Exists(Properties.Settings.Default.SpotifyPath) && Process.GetProcessesByName("spotify").Length < 1)
                 {
-                    Process.Start(spotifyPath);
+                    Process.Start(Properties.Settings.Default.SpotifyPath);
                 }
                 Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.High; // Windows throttles down when minimized to task tray, so make sure EZBlocker runs smoothly
             }
@@ -248,7 +316,7 @@ namespace EZBlocker
 
         private void CheckPatch(bool launch)
         {
-            string currentVersion = FileVersionInfo.GetVersionInfo(spotifyPath).FileVersion;
+            string currentVersion = FileVersionInfo.GetVersionInfo(Properties.Settings.Default.SpotifyPath).FileVersion;
             if (!Properties.Settings.Default.LastPatched.Equals(currentVersion) || launch) // Always attempt to patch on launch
             {
                 // MessageBox.Show("EZBlocker needs to modify Spotify.\r\n\r\nTo return to the original, right click the EZBlocker icon in your task tray and choose 'Remove Patch'.", "EZBlocker");
@@ -378,8 +446,8 @@ namespace EZBlocker
 
         private void WebsiteLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            MessageBox.Show(Properties.strings.ReportProblemMessageBox.Replace("{0}", Assembly.GetExecutingAssembly().GetName().Version.ToString()).Replace("{1}", FileVersionInfo.GetVersionInfo(spotifyPath).FileVersion), "EZBlocker");
-            Clipboard.SetText(Properties.strings.ReportProblemClipboard.Replace("{0}", Assembly.GetExecutingAssembly().GetName().Version.ToString()).Replace("{1}", FileVersionInfo.GetVersionInfo(spotifyPath).FileVersion));
+            MessageBox.Show(Properties.strings.ReportProblemMessageBox.Replace("{0}", Assembly.GetExecutingAssembly().GetName().Version.ToString()).Replace("{1}", FileVersionInfo.GetVersionInfo(Properties.Settings.Default.SpotifyPath).FileVersion), "EZBlocker");
+            Clipboard.SetText(Properties.strings.ReportProblemClipboard.Replace("{0}", Assembly.GetExecutingAssembly().GetName().Version.ToString()).Replace("{1}", FileVersionInfo.GetVersionInfo(Properties.Settings.Default.SpotifyPath).FileVersion));
             Process.Start(website);
             LogAction("/button/website");
         }
@@ -435,5 +503,24 @@ namespace EZBlocker
 
         [DllImport("shell32.dll")]
         public static extern bool IsUserAnAdmin();
+
+        private void cbxUseCustomPath_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (cbxUseCustomPath.Checked)
+            {
+                Properties.Settings.Default.UsingCustomPath = true;
+                Properties.Settings.Default.Save();
+
+                LocateSpotifyExecutable(false);
+            }
+            else
+            {
+                Properties.Settings.Default.UsingCustomPath = false;
+                Properties.Settings.Default.Save();
+
+                Process.Start(Application.ExecutablePath);
+                Environment.Exit(0);
+            }
+        }
     }
 }

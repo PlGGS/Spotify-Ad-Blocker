@@ -180,7 +180,11 @@ Click 'OK' to install the normal desktop version of Spotify.</value>
     <value>Muting:</value>
     <comment>Status label</comment>
   </data>
-	<data name="StatusNotFound" xml:space="preserve">
+  <data name="StatusNotRunning" xml:space="preserve">
+    <value>Spotify not running</value>
+    <comment>Status label</comment>
+  </data>
+  <data name="StatusNotFound" xml:space="preserve">
     <value>Spotify not found</value>
     <comment>Status label</comment>
   </data>

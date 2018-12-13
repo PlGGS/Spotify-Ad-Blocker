@@ -45,6 +45,8 @@
             this.BlockBannersCheckbox = new System.Windows.Forms.CheckBox();
             this.StartupCheckbox = new System.Windows.Forms.CheckBox();
             this.SpotifyCheckbox = new System.Windows.Forms.CheckBox();
+            this.cbxUseCustomPath = new System.Windows.Forms.CheckBox();
+            this.txtUseCustomPath = new System.Windows.Forms.TextBox();
             this.NotifyIconContextMenu.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -155,10 +157,24 @@
             this.SpotifyCheckbox.UseVisualStyleBackColor = true;
             this.SpotifyCheckbox.CheckedChanged += new System.EventHandler(this.SpotifyCheckbox_CheckedChanged);
             // 
+            // cbxUseCustomPath
+            // 
+            resources.ApplyResources(this.cbxUseCustomPath, "cbxUseCustomPath");
+            this.cbxUseCustomPath.Name = "cbxUseCustomPath";
+            this.cbxUseCustomPath.UseVisualStyleBackColor = true;
+            this.cbxUseCustomPath.MouseUp += new System.Windows.Forms.MouseEventHandler(this.cbxUseCustomPath_MouseUp);
+            // 
+            // txtUseCustomPath
+            // 
+            resources.ApplyResources(this.txtUseCustomPath, "txtUseCustomPath");
+            this.txtUseCustomPath.Name = "txtUseCustomPath";
+            // 
             // Main
             // 
             resources.ApplyResources(this, "$this");
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.txtUseCustomPath);
+            this.Controls.Add(this.cbxUseCustomPath);
             this.Controls.Add(this.SpotifyCheckbox);
             this.Controls.Add(this.StartupCheckbox);
             this.Controls.Add(this.BlockBannersCheckbox);
@@ -193,6 +209,8 @@
         private System.Windows.Forms.ToolStripMenuItem websiteToolStripMenuItem;
         private System.Windows.Forms.CheckBox SpotifyCheckbox;
         private System.Windows.Forms.ToolStripMenuItem undoPatchToolStripMenuItem;
+        private System.Windows.Forms.CheckBox cbxUseCustomPath;
+        private System.Windows.Forms.TextBox txtUseCustomPath;
     }
 }
 

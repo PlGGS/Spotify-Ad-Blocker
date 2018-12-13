@@ -198,6 +198,15 @@ namespace EZBlocker.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Spotify not running.
+        /// </summary>
+        internal static string StatusNotRunning {
+            get {
+                return ResourceManager.GetString("StatusNotRunning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Spotify is paused.
         /// </summary>
         internal static string StatusPaused {
